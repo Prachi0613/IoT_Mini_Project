@@ -1,0 +1,58 @@
+{
+  "additionalProperties": false,
+  "description": "Metadata describing a single acquisition run.\n\nA *run* is a contiguous period during which the ESP32 collects sensor\ndata from the attached hardware.  This record is written once at the\nstart of each run and is referenced by all sample and feature records\nvia ``run_id``.\n\nNominal frequency fields capture the *intended* acquisition rate, not\nany measured or verified throughput.",
+  "properties": {
+    "device_id": {
+      "description": "Unique identifier of the ESP32 device.",
+      "minLength": 1,
+      "title": "Device Id",
+      "type": "string"
+    },
+    "nominal_accel_hz": {
+      "description": "Design-target sampling rate for the MPU6050 accelerometer and ACS712 current sensor, in Hz.  This is an engineering target, not a verified acquisition rate.",
+      "exclusiveMinimum": 0,
+      "title": "Nominal Accel Hz",
+      "type": "number"
+    },
+    "nominal_current_hz": {
+      "description": "Design-target sampling rate for the ACS712 current sensor, in Hz.  This is an engineering target, not a verified rate.",
+      "exclusiveMinimum": 0,
+      "title": "Nominal Current Hz",
+      "type": "number"
+    },
+    "nominal_environment_interval_s": {
+      "description": "Design-target interval between DHT11 ambient readings, in seconds.  DHT11 is a slow sensor; values more frequent than ~0.5 s are not physically meaningful.",
+      "exclusiveMinimum": 0,
+      "title": "Nominal Environment Interval S",
+      "type": "number"
+    },
+    "run_id": {
+      "description": "Unique identifier for this acquisition run.  Typically a UUID or a timestamp-based token.",
+      "minLength": 1,
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Contract schema version.  Must equal '1.0.0'.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "started_at_utc": {
+      "description": "UTC timestamp at which data acquisition began.  Must be timezone-aware (tzinfo=UTC).",
+      "format": "date-time",
+      "title": "Started At Utc",
+      "type": "string"
+    }
+  },
+  "required": [
+    "device_id",
+    "run_id",
+    "started_at_utc",
+    "nominal_accel_hz",
+    "nominal_current_hz",
+    "nominal_environment_interval_s"
+  ],
+  "title": "RunMetadata",
+  "type": "object"
+}

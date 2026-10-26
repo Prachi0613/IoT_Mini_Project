@@ -29,6 +29,18 @@ htmlcov/
 .coverage
 coverage.xml
 
+# Runtime recordings and exports
+data/*
+!data/.gitkeep
+*.sqlite
+*.sqlite3
+*.db
+exports/
+simulation-output/
+*.jsonl
+artifacts/
+experiment-output/
+
 # IDEs
 .idea/
 .vscode/
@@ -41,3 +53,9 @@ Thumbs.db
 
 # Distribution
 *.whl
+
+# Frontend dependencies and compiler state
+frontend/node_modules/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts

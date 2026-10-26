@@ -1,0 +1,252 @@
+{
+  "$defs": {
+    "AcquisitionQuality": {
+      "additionalProperties": false,
+      "description": "Acquisition counters cumulative since this boot/session began.",
+      "properties": {
+        "buffer_overruns": {
+          "minimum": 0,
+          "title": "Buffer Overruns",
+          "type": "integer"
+        },
+        "dht_failures": {
+          "minimum": 0,
+          "title": "Dht Failures",
+          "type": "integer"
+        },
+        "i2c_read_errors": {
+          "minimum": 0,
+          "title": "I2C Read Errors",
+          "type": "integer"
+        },
+        "missed_deadlines": {
+          "minimum": 0,
+          "title": "Missed Deadlines",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "i2c_read_errors",
+        "missed_deadlines",
+        "buffer_overruns",
+        "dht_failures"
+      ],
+      "title": "AcquisitionQuality",
+      "type": "object"
+    },
+    "EnvironmentSample": {
+      "additionalProperties": false,
+      "properties": {
+        "ambient_humidity_pct": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ambient Humidity Pct"
+        },
+        "ambient_temperature_c": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ambient Temperature C"
+        },
+        "env_seq": {
+          "minimum": 0,
+          "title": "Env Seq",
+          "type": "integer"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "t_mono_us": {
+          "minimum": 0,
+          "title": "T Mono Us",
+          "type": "integer"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "env_seq",
+        "t_mono_us",
+        "ambient_temperature_c",
+        "ambient_humidity_pct",
+        "valid"
+      ],
+      "title": "EnvironmentSample",
+      "type": "object"
+    },
+    "MotionSample": {
+      "additionalProperties": false,
+      "properties": {
+        "ax_g": {
+          "title": "Ax G",
+          "type": "number"
+        },
+        "ay_g": {
+          "title": "Ay G",
+          "type": "number"
+        },
+        "az_g": {
+          "title": "Az G",
+          "type": "number"
+        },
+        "gx_dps": {
+          "title": "Gx Dps",
+          "type": "number"
+        },
+        "gy_dps": {
+          "title": "Gy Dps",
+          "type": "number"
+        },
+        "gz_dps": {
+          "title": "Gz Dps",
+          "type": "number"
+        },
+        "sample_seq": {
+          "minimum": 0,
+          "title": "Sample Seq",
+          "type": "integer"
+        },
+        "t_mono_us": {
+          "minimum": 0,
+          "title": "T Mono Us",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sample_seq",
+        "t_mono_us",
+        "ax_g",
+        "ay_g",
+        "az_g",
+        "gx_dps",
+        "gy_dps",
+        "gz_dps"
+      ],
+      "title": "MotionSample",
+      "type": "object"
+    },
+    "SourceType": {
+      "enum": [
+        "SIMULATED",
+        "HARDWARE"
+      ],
+      "title": "SourceType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "accel_range_g": {
+      "exclusiveMinimum": 0,
+      "maximum": 32,
+      "title": "Accel Range G",
+      "type": "number"
+    },
+    "batch_seq": {
+      "minimum": 0,
+      "title": "Batch Seq",
+      "type": "integer"
+    },
+    "boot_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "title": "Boot Id",
+      "type": "string"
+    },
+    "device_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "title": "Device Id",
+      "type": "string"
+    },
+    "dlpf_config": {
+      "maximum": 6,
+      "minimum": 0,
+      "title": "Dlpf Config",
+      "type": "integer"
+    },
+    "environment_samples": {
+      "items": {
+        "$ref": "#/$defs/EnvironmentSample"
+      },
+      "maxItems": 20,
+      "title": "Environment Samples",
+      "type": "array"
+    },
+    "gyro_range_dps": {
+      "exclusiveMinimum": 0,
+      "maximum": 4000,
+      "title": "Gyro Range Dps",
+      "type": "number"
+    },
+    "motion_samples": {
+      "items": {
+        "$ref": "#/$defs/MotionSample"
+      },
+      "maxItems": 1000,
+      "title": "Motion Samples",
+      "type": "array"
+    },
+    "quality": {
+      "$ref": "#/$defs/AcquisitionQuality"
+    },
+    "requested_mpu_hz": {
+      "exclusiveMinimum": 0,
+      "maximum": 4000,
+      "title": "Requested Mpu Hz",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_type": {
+      "$ref": "#/$defs/SourceType"
+    }
+  },
+  "required": [
+    "schema_version",
+    "device_id",
+    "boot_id",
+    "batch_seq",
+    "source_type",
+    "requested_mpu_hz",
+    "accel_range_g",
+    "gyro_range_dps",
+    "dlpf_config",
+    "motion_samples",
+    "environment_samples",
+    "quality"
+  ],
+  "title": "TelemetryBatch",
+  "type": "object"
+}

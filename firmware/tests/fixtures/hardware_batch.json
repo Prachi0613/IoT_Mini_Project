@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "device_id": "esp32-contract-test",
+  "boot_id": "boot-0123456789abcdef0123456789abcdef",
+  "batch_seq": 7,
+  "source_type": "HARDWARE",
+  "requested_mpu_hz": 500,
+  "accel_range_g": 4.0,
+  "gyro_range_dps": 250.0,
+  "dlpf_config": 1,
+  "motion_samples": [
+    {
+      "sample_seq": 100,
+      "t_mono_us": 200000,
+      "ax_g": 0.012,
+      "ay_g": -0.008,
+      "az_g": 1.003,
+      "gx_dps": 0.25,
+      "gy_dps": -0.12,
+      "gz_dps": 0.04
+    },
+    {
+      "sample_seq": 101,
+      "t_mono_us": 202007,
+      "ax_g": 0.013,
+      "ay_g": -0.007,
+      "az_g": 1.002,
+      "gx_dps": 0.27,
+      "gy_dps": -0.11,
+      "gz_dps": 0.05
+    }
+  ],
+  "environment_samples": [
+    {
+      "env_seq": 4,
+      "t_mono_us": 201500,
+      "ambient_temperature_c": null,
+      "ambient_humidity_pct": null,
+      "valid": false,
+      "error_code": "DHT11_READ_FAILED"
+    }
+  ],
+  "quality": {
+    "i2c_read_errors": 2,
+    "missed_deadlines": 3,
+    "buffer_overruns": 1,
+    "dht_failures": 1
+  }
+}

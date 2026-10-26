@@ -1,6 +1,6 @@
-"""
-pmnode — Self-Learning IoT Predictive Maintenance Node.
+"""Task 01 software foundation for the predictive-maintenance prototype."""
 
-Data-contract layer for the ESP32-based machine condition
-monitoring and early-degradation detection system.
-"""
+from .contracts import SCHEMA_VERSION
+
+__all__ = ["SCHEMA_VERSION"]
+__version__ = "0.1.0"

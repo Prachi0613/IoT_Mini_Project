@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "accepted_environment_samples": {
+      "minimum": 0,
+      "title": "Accepted Environment Samples",
+      "type": "integer"
+    },
+    "accepted_motion_samples": {
+      "minimum": 0,
+      "title": "Accepted Motion Samples",
+      "type": "integer"
+    },
+    "batch_seq": {
+      "title": "Batch Seq",
+      "type": "integer"
+    },
+    "boot_id": {
+      "title": "Boot Id",
+      "type": "string"
+    },
+    "device_id": {
+      "title": "Device Id",
+      "type": "string"
+    },
+    "duplicate": {
+      "title": "Duplicate",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "device_id",
+    "boot_id",
+    "batch_seq",
+    "accepted_motion_samples",
+    "accepted_environment_samples",
+    "duplicate"
+  ],
+  "title": "IngestAcknowledgement",
+  "type": "object"
+}

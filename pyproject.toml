@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pmnode"
 version = "0.1.0"
-description = "Self-Learning IoT Predictive Maintenance Node — data-contract layer"
+description = "Simulated IoT telemetry producer and ingestion backend"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
     { name = "IoT Mini Project Team" }
 ]
-keywords = ["iot", "predictive-maintenance", "pydantic", "data-contracts"]
+keywords = ["iot", "simulation", "fastapi", "sqlite", "telemetry"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
@@ -24,7 +24,15 @@ classifiers = [
 ]
 
 dependencies = [
+    "fastapi>=0.115,<0.116",
+    "uvicorn[standard]>=0.32,<1.0",
     "pydantic>=2.0,<3.0",
+    "httpx>=0.27,<0.28",
+    "numpy>=2.0,<3.0",
+    "scipy>=1.14,<2.0",
+    "scikit-learn>=1.5,<2.0",
+    "joblib>=1.4,<2.0",
+    "matplotlib>=3.9,<4.0",
 ]
 
 [project.optional-dependencies]

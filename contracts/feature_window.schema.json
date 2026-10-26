@@ -1,32 +1,14 @@
 {
   "$defs": {
-    "OperatingRegime": {
-      "description": "Commanded operating regime derived from PWM duty band or external label.\n\nValues\n------\nLOW        : Motor running at low duty / speed band.\nMEDIUM     : Motor running at medium duty / speed band.\nHIGH       : Motor running at high duty / speed band.\nTRANSITION : Motor is actively changing speed; steady-state features\n             computed during this period are unreliable.\nUNKNOWN    : Regime could not be determined from available signals.",
+    "SourceType": {
       "enum": [
-        "LOW",
-        "MEDIUM",
-        "HIGH",
-        "TRANSITION",
-        "UNKNOWN"
+        "SIMULATED",
+        "HARDWARE"
       ],
-      "title": "OperatingRegime",
-      "type": "string"
-    },
-    "QualityFlag": {
-      "description": "Detailed reasons why a feature window may be INVALID or degraded.\n\nMultiple flags may be set simultaneously.\n\nValues\n------\nACCEL_MISSING        : Accelerometer data absent for this window.\nCURRENT_MISSING      : Current-sensor data absent for this window.\nENV_STALE            : Environmental sample is older than the\n                       configured staleness threshold.\nTIMESTAMP_GAP        : A discontinuity was detected in the sample\n                       timestamps within the window.\nINSUFFICIENT_SAMPLES : Fewer samples than the minimum required for\n                       reliable feature extraction were available.\nUNKNOWN_REGIME       : Operating regime could not be determined,\n                       making regime-conditioned features unreliable.",
-      "enum": [
-        "ACCEL_MISSING",
-        "CURRENT_MISSING",
-        "ENV_STALE",
-        "TIMESTAMP_GAP",
-        "INSUFFICIENT_SAMPLES",
-        "UNKNOWN_REGIME"
-      ],
-      "title": "QualityFlag",
+      "title": "SourceType",
       "type": "string"
     },
     "WindowQuality": {
-      "description": "Top-level quality classification of a feature window.\n\nVALID   : All required features are present and plausible.\nINVALID : One or more required features are absent, stale, or\n          logically inconsistent.  Consumers must not use INVALID\n          windows for inference without explicit handling.",
       "enum": [
         "VALID",
         "INVALID"
@@ -36,14 +18,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "Pre-extracted feature vector over a contiguous time window.\n\nThis is the primary interface between the signal-processing pipeline\nand the anomaly-detection / ML components.  It contains *already-\nextracted* statistical and spectral features; no signal processing is\nperformed within this model.\n\nWindow quality\n--------------\nA window is VALID only when:\n- ``accel_sample_count`` > 0 and all vibration features are present.\n- ``current_sample_count`` > 0 and all current features are present.\n\nA window is INVALID when any mandatory feature is absent.  Missing\nvalues are represented as None; they must NOT be replaced with\nfabricated zeros.\n\nEnvironmental features\n----------------------\nAmbient temperature and humidity are *optional* in every window\nbecause the DHT11 sampling interval (\u22652 s) means environmental data\nmay be absent or stale for any given window.  ``environment_sample_age_ms``\nindicates how old the most recent DHT11 reading was at window close.\n\nFrequency-domain features\n-------------------------\nBand energies (low / high) represent the integral of the power\nspectral density over defined frequency sub-bands, in g\u00b2.  The exact\nband boundaries are defined by the signal-processing component and\nare documented there; this contract only validates the numeric\nconstraints.",
   "properties": {
-    "accel_sample_count": {
-      "description": "Number of acceleration samples included in this window.",
-      "minimum": 0,
-      "title": "Accel Sample Count",
-      "type": "integer"
-    },
     "ambient_humidity_pct": {
       "anyOf": [
         {
@@ -54,7 +29,6 @@
         }
       ],
       "default": null,
-      "description": "Most recent ambient relative humidity from the DHT11, in %.  Null when no environmental sample is available.",
       "title": "Ambient Humidity Pct"
     },
     "ambient_temperature_c": {
@@ -67,64 +41,19 @@
         }
       ],
       "default": null,
-      "description": "Most recent ambient temperature reading from the DHT11, in \u00b0C.  Null when no environmental sample is available for this window.  This is NOT motor winding or housing temperature.",
       "title": "Ambient Temperature C"
     },
-    "current_mean_a": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Mean motor current over the window, in amperes.  May be signed (see CurrentSample.motor_current_a).",
-      "title": "Current Mean A"
-    },
-    "current_peak_a": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Peak absolute motor current in the window, in amperes.  Non-negative.",
-      "title": "Current Peak A"
-    },
-    "current_sample_count": {
-      "description": "Number of current samples included in this window.",
-      "minimum": 0,
-      "title": "Current Sample Count",
-      "type": "integer"
-    },
-    "current_std_a": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Standard deviation of motor current over the window, in amperes.  Non-negative.",
-      "title": "Current Std A"
+    "boot_id": {
+      "title": "Boot Id",
+      "type": "string"
     },
     "device_id": {
-      "description": "Originating device identifier.",
-      "minLength": 1,
       "title": "Device Id",
       "type": "string"
     },
-    "environment_sample_age_ms": {
+    "dominant_frequency_hz": {
       "anyOf": [
         {
-          "minimum": 0.0,
           "type": "number"
         },
         {
@@ -132,38 +61,124 @@
         }
       ],
       "default": null,
-      "description": "Age of the most recent DHT11 reading at window close, in ms.  Null when no environmental sample is available.  Large values indicate a potentially stale environmental context.",
-      "title": "Environment Sample Age Ms"
+      "title": "Dominant Frequency Hz"
     },
-    "operating_regime": {
-      "$ref": "#/$defs/OperatingRegime",
-      "description": "Operating regime classification at window close."
+    "environment_age_us": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Environment Age Us"
     },
-    "pwm_duty": {
-      "description": "Commanded PWM duty cycle in [0.0, 1.0] at window close.",
-      "maximum": 1.0,
-      "minimum": 0.0,
-      "title": "Pwm Duty",
-      "type": "number"
+    "feature_schema_version": {
+      "default": "1.0.0",
+      "title": "Feature Schema Version",
+      "type": "string"
+    },
+    "gyro_peak_dps": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gyro Peak Dps"
+    },
+    "gyro_rms_dps": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gyro Rms Dps"
+    },
+    "gyro_std_dps": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gyro Std Dps"
+    },
+    "max_gap_us": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Gap Us"
+    },
+    "median_interval_us": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Median Interval Us"
+    },
+    "observed_sampling_hz": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observed Sampling Hz"
     },
     "quality_flags": {
-      "description": "Detailed quality flags.  Empty list for fully VALID windows.  May contain multiple flags for INVALID or degraded windows.",
       "items": {
-        "$ref": "#/$defs/QualityFlag"
+        "type": "string"
       },
       "title": "Quality Flags",
       "type": "array"
     },
-    "run_id": {
-      "description": "Acquisition run identifier.",
-      "minLength": 1,
-      "title": "Run Id",
-      "type": "string"
+    "sample_count": {
+      "minimum": 0,
+      "title": "Sample Count",
+      "type": "integer"
     },
-    "schema_version": {
-      "default": "1.0.0",
-      "title": "Schema Version",
-      "type": "string"
+    "source_type": {
+      "$ref": "#/$defs/SourceType"
+    },
+    "timestamp_jitter_us": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Timestamp Jitter Us"
     },
     "vibration_crest_factor": {
       "anyOf": [
@@ -175,8 +190,19 @@
         }
       ],
       "default": null,
-      "description": "Crest factor = peak / RMS.  Non-negative.  A high crest factor may indicate impulsive events.",
       "title": "Vibration Crest Factor"
+    },
+    "vibration_energy_g2": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Vibration Energy G2"
     },
     "vibration_high_band_energy_g2": {
       "anyOf": [
@@ -188,7 +214,6 @@
         }
       ],
       "default": null,
-      "description": "Spectral energy in the high-frequency band, in g\u00b2.  Non-negative.  Band boundaries defined by signal-processing layer.",
       "title": "Vibration High Band Energy G2"
     },
     "vibration_low_band_energy_g2": {
@@ -201,7 +226,6 @@
         }
       ],
       "default": null,
-      "description": "Spectral energy in the low-frequency band, in g\u00b2.  Non-negative.  Band boundaries defined by signal-processing layer.",
       "title": "Vibration Low Band Energy G2"
     },
     "vibration_peak_g": {
@@ -214,8 +238,19 @@
         }
       ],
       "default": null,
-      "description": "Peak acceleration magnitude in the window, in g.  Non-negative.",
       "title": "Vibration Peak G"
+    },
+    "vibration_peak_to_peak_g": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Vibration Peak To Peak G"
     },
     "vibration_rms_g": {
       "anyOf": [
@@ -227,7 +262,6 @@
         }
       ],
       "default": null,
-      "description": "RMS of the acceleration magnitude vector, in g.  Non-negative.",
       "title": "Vibration Rms G"
     },
     "vibration_std_g": {
@@ -240,21 +274,29 @@
         }
       ],
       "default": null,
-      "description": "Standard deviation of the acceleration magnitude, in g.  Non-negative.",
       "title": "Vibration Std G"
     },
+    "vibration_variance_g2": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Vibration Variance G2"
+    },
     "window_end_us": {
-      "description": "Window end time in microseconds since run start.  Must be strictly greater than window_start_us.",
-      "minimum": 0,
+      "exclusiveMinimum": 0,
       "title": "Window End Us",
       "type": "integer"
     },
     "window_quality": {
-      "$ref": "#/$defs/WindowQuality",
-      "description": "Top-level quality classification.  VALID windows must have all required features populated with positive sample counts.  INVALID windows may have null feature values."
+      "$ref": "#/$defs/WindowQuality"
     },
     "window_start_us": {
-      "description": "Window start time in microseconds since run start.",
       "minimum": 0,
       "title": "Window Start Us",
       "type": "integer"
@@ -262,14 +304,13 @@
   },
   "required": [
     "device_id",
-    "run_id",
+    "boot_id",
+    "source_type",
     "window_start_us",
     "window_end_us",
-    "accel_sample_count",
-    "current_sample_count",
-    "pwm_duty",
-    "operating_regime",
-    "window_quality"
+    "sample_count",
+    "window_quality",
+    "quality_flags"
   ],
   "title": "FeatureWindow",
   "type": "object"

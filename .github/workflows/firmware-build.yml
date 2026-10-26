@@ -1,0 +1,46 @@
+name: Firmware build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "firmware/**"
+      - ".github/workflows/firmware-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  platformio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install pinned PlatformIO Core
+        run: python -m pip install "platformio==6.2.0"
+
+      - name: Build ESP32 firmware
+        run: pio run --project-dir firmware -v -j 1
+
+      - name: Report firmware sizes
+        run: pio run --project-dir firmware --target size
+
+      - name: Preserve verified build outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: pmnode-esp32dev-firmware
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            firmware/.pio/build/esp32dev/firmware.bin
+            firmware/.pio/build/esp32dev/firmware.elf
+            firmware/.pio/build/esp32dev/bootloader.bin
+            firmware/.pio/build/esp32dev/partitions.bin

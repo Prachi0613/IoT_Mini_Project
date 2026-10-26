@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "description": "Acquisition counters cumulative since this boot/session began.",
+  "properties": {
+    "buffer_overruns": {
+      "minimum": 0,
+      "title": "Buffer Overruns",
+      "type": "integer"
+    },
+    "dht_failures": {
+      "minimum": 0,
+      "title": "Dht Failures",
+      "type": "integer"
+    },
+    "i2c_read_errors": {
+      "minimum": 0,
+      "title": "I2C Read Errors",
+      "type": "integer"
+    },
+    "missed_deadlines": {
+      "minimum": 0,
+      "title": "Missed Deadlines",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "i2c_read_errors",
+    "missed_deadlines",
+    "buffer_overruns",
+    "dht_failures"
+  ],
+  "title": "AcquisitionQuality",
+  "type": "object"
+}

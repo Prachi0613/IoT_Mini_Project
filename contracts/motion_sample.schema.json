@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "ax_g": {
+      "title": "Ax G",
+      "type": "number"
+    },
+    "ay_g": {
+      "title": "Ay G",
+      "type": "number"
+    },
+    "az_g": {
+      "title": "Az G",
+      "type": "number"
+    },
+    "gx_dps": {
+      "title": "Gx Dps",
+      "type": "number"
+    },
+    "gy_dps": {
+      "title": "Gy Dps",
+      "type": "number"
+    },
+    "gz_dps": {
+      "title": "Gz Dps",
+      "type": "number"
+    },
+    "sample_seq": {
+      "minimum": 0,
+      "title": "Sample Seq",
+      "type": "integer"
+    },
+    "t_mono_us": {
+      "minimum": 0,
+      "title": "T Mono Us",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "sample_seq",
+    "t_mono_us",
+    "ax_g",
+    "ay_g",
+    "az_g",
+    "gx_dps",
+    "gy_dps",
+    "gz_dps"
+  ],
+  "title": "MotionSample",
+  "type": "object"
+}

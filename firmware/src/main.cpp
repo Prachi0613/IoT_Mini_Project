@@ -19,6 +19,29 @@ portMUX_TYPE g_quality_lock = portMUX_INITIALIZER_UNLOCKED;
 QualityCounters g_quality{};
 char g_boot_id[65]{};
 uint64_t g_batch_seq = 0;
+uint64_t g_abandoned_batches = 0;
+uint64_t g_lost_motion_samples = 0;
+uint64_t g_lost_environment_samples = 0;
+
+void recordLostSamples(uint64_t motion, uint64_t environment) {
+  portENTER_CRITICAL(&g_quality_lock);
+  g_lost_motion_samples += motion;
+  g_lost_environment_samples += environment;
+  portEXIT_CRITICAL(&g_quality_lock);
+}
+
+void recordAbandonedBatch(const TelemetryBatch& batch) {
+  portENTER_CRITICAL(&g_quality_lock);
+  ++g_abandoned_batches;
+  g_lost_motion_samples += batch.motion_count;
+  g_lost_environment_samples += batch.environment_count;
+  const uint64_t abandoned = g_abandoned_batches;
+  const uint64_t lost_motion = g_lost_motion_samples;
+  const uint64_t lost_environment = g_lost_environment_samples;
+  portEXIT_CRITICAL(&g_quality_lock);
+  Serial.printf("TRANSPORT_LOSS_TOTALS: batches=%llu motion=%llu environment=%llu\n",
+                abandoned, lost_motion, lost_environment);
+}
 
 void incrementI2cErrors(uint32_t amount = 1) {
   portENTER_CRITICAL(&g_quality_lock);
@@ -77,6 +100,7 @@ void enqueueFinalizedBatch(TelemetryBatch*& batch) {
     incrementBufferOverruns();
     Serial.printf("BATCH_QUEUE_OVERFLOW: abandoned batch=%llu samples=%u\n",
                   batch->batch_seq, batch->motion_count);
+    recordAbandonedBatch(*batch);
     delete batch;
   }
   batch = nullptr;
@@ -134,6 +158,7 @@ void samplingTask(void*) {
     if (lateness >= period_us) {
       const uint32_t missed = static_cast<uint32_t>(lateness / period_us);
       incrementMissedDeadlines(missed);
+      recordLostSamples(missed, 0);
       attempt_sequence += missed;  // Preserve sequence gaps; never invent samples.
       next_deadline_us += static_cast<int64_t>(missed) * period_us;
     }
@@ -145,6 +170,7 @@ void samplingTask(void*) {
       batch->motion[batch->motion_count++] = sample;
     } else {
       incrementI2cErrors();
+      recordLostSamples(1, 0);
     }
     next_deadline_us += period_us;
 
@@ -164,6 +190,7 @@ void dhtTask(void*) {
     if (!sample.valid) incrementDhtFailures();
     if (xQueueSend(g_environment_queue, &sample, 0) != pdTRUE) {
       incrementBufferOverruns();
+      recordLostSamples(0, 1);
       Serial.println("ENVIRONMENT_QUEUE_OVERFLOW: DHT observation abandoned");
     }
     vTaskDelayUntil(&previous_wake, pdMS_TO_TICKS(config::DHT_INTERVAL_MS));
@@ -179,6 +206,7 @@ void networkTask(void*) {
     String stable_payload;
     if (!serializeTelemetryBatch(*batch, stable_payload)) {
       Serial.printf("SERIALIZATION_FAILED: batch=%llu\n", batch->batch_seq);
+      recordAbandonedBatch(*batch);
       delete batch;
       batch = nullptr;
       continue;
@@ -207,6 +235,7 @@ void networkTask(void*) {
     } else {
       Serial.printf("BATCH_ABANDONED: batch=%llu after finite retry policy\n",
                     batch->batch_seq);
+      recordAbandonedBatch(*batch);
     }
     delete batch;
     batch = nullptr;
@@ -222,6 +251,7 @@ void setup() {
     Serial.println("FATAL DEVICE_ID: use 1..64 characters [A-Za-z0-9._-]");
     return;
   }
+  if (!validateNetworkConfiguration()) return;
   makeBootId(g_boot_id, sizeof(g_boot_id));
   Serial.printf("device_id=%s boot_id=%s source_type=%s\n",
                 config::DEVICE_ID, g_boot_id, TELEMETRY_SOURCE_TYPE);

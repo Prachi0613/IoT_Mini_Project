@@ -111,3 +111,12 @@ def test_pagination_limit_bounded(client):
     response = client.get("/api/v1/telemetry", params={
         "device_id": "x", "boot_id": "y", "sensor": "motion", "limit": 1001})
     assert response.status_code == 422
+
+
+def test_declared_payload_larger_than_limit_is_rejected(client):
+    response = client.post(
+        "/api/v1/batches", content=b"x" * 2_000_001,
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 413
+    assert response.json() == {"error": "request_too_large"}

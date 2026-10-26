@@ -14,6 +14,14 @@ String endpointUrl() {
 bool acknowledgementMatches(const String& body, const TelemetryBatch& batch) {
   JsonDocument response;
   if (deserializeJson(response, body) != DeserializationError::Ok) return false;
+  if (!response["device_id"].is<const char*>() ||
+      !response["boot_id"].is<const char*>() ||
+      !response["batch_seq"].is<uint64_t>() ||
+      !response["duplicate"].is<bool>() ||
+      !response["accepted_motion_samples"].is<uint16_t>() ||
+      !response["accepted_environment_samples"].is<uint8_t>()) {
+    return false;
+  }
   if (response["device_id"].as<String>() != batch.device_id ||
       response["boot_id"].as<String>() != batch.boot_id ||
       response["batch_seq"].as<uint64_t>() != batch.batch_seq) {
@@ -27,6 +35,20 @@ bool acknowledgementMatches(const String& body, const TelemetryBatch& batch) {
                       accepted_environment == batch.environment_count);
 }
 }  // namespace
+
+bool validateNetworkConfiguration() {
+  const String host(config::BACKEND_HOST);
+  if (host.isEmpty() || host.equalsIgnoreCase("localhost") ||
+      host == "127.0.0.1" || host == "0.0.0.0") {
+    Serial.println("FATAL BACKEND_CONFIG: use the laptop LAN IPv4 address, not localhost");
+    return false;
+  }
+  if (config::BACKEND_PORT == 0) {
+    Serial.println("FATAL BACKEND_CONFIG: backend port must be non-zero");
+    return false;
+  }
+  return true;
+}
 
 bool connectWifiBounded() {
   if (strcmp(config::WIFI_SSID, "CHANGE_ME") == 0) {

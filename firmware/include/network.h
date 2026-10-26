@@ -13,4 +13,5 @@ enum class DeliveryResult {
 };
 
 bool connectWifiBounded();
+bool validateNetworkConfiguration();
 DeliveryResult deliverBatch(const TelemetryBatch& batch, const String& stable_payload);

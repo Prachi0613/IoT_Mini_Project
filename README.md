@@ -513,3 +513,10 @@ The demonstration is synthetic software evidence only. A synthetic-trained
 model is deliberately incompatible with future `HARDWARE` sessions; raw data
 and valid features may be retained, but no hardware anomaly score or NORMAL
 state is invented until an approved hardware-source model exists.
+
+For ESP32 operation, bind the API to `0.0.0.0`, configure the firmware with the
+laptop's active Wi-Fi IPv4 address, and restrict firewall access to the trusted
+Private network. The exact LAN checks, firmware build/upload boundary,
+acknowledgement behavior, and troubleshooting procedure are in
+[`docs/hardware-integration.md`](docs/hardware-integration.md). Physical upload
+and hardware verification are intentionally still pending.

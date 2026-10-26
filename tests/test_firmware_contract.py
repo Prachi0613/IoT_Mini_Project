@@ -50,6 +50,9 @@ def test_firmware_batch_and_retry_policies_are_bounded():
     retry_position = main.index("for (uint8_t attempt")
     assert serialize_position < retry_position
     assert "deliverBatch(*batch, stable_payload)" in main
+    assert "recordAbandonedBatch(*batch)" in main
+    assert "g_lost_motion_samples" in main
+    assert "g_lost_environment_samples" in main
 
 
 def test_sensor_units_timing_and_identity_design_are_explicit():
@@ -67,6 +70,19 @@ def test_sensor_units_timing_and_identity_design_are_explicit():
     assert "attempt_sequence += missed" in main
     assert telemetry.count("esp_random()") == 4
     assert 'TELEMETRY_SOURCE_TYPE[] = "HARDWARE"' in policy
+
+
+def test_network_configuration_and_acknowledgements_fail_closed():
+    network = source("src/network.cpp")
+    main = source("src/main.cpp")
+    assert 'host.equalsIgnoreCase("localhost")' in network
+    assert 'host == "127.0.0.1"' in network
+    assert "validateNetworkConfiguration()" in main
+    for field in (
+        "device_id", "boot_id", "batch_seq", "duplicate",
+        "accepted_motion_samples", "accepted_environment_samples",
+    ):
+        assert f'response["{field}"].is<' in network
 
 
 def test_firmware_has_no_prohibited_sensor_or_motor_control_dependencies():
